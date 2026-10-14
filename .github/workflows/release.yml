@@ -22,25 +22,33 @@ jobs:
         choco install wixtoolset --no-progress -y
       shell: pwsh
     
-    - name: Build MSI
+    - name: Build app image
       run: |
-        gradle clean packageDistributionForCurrentOS --no-daemon -v
+        gradle clean createDistributable --no-daemon
       shell: pwsh
-      env:
-        GRADLE_OPTS: "-Dorg.gradle.logging.level=info"
     
-    - name: List build outputs
+    - name: Create MSI with jpackage
       run: |
-        Get-ChildItem -Path build\compose\binaries\main -Recurse -File | Select-Object FullName
+        $appDir = "build\compose\binaries\main\app\justeprix"
+        $jpackage = "$env:JAVA_HOME\bin\jpackage.exe"
+        & $jpackage `
+          --input "$appDir\lib" `
+          --name justeprix `
+          --app-version "1.0.0" `
+          --main-class "MainKt" `
+          --main-jar "justeprix-*.jar" `
+          --win-shortcut `
+          --win-menu `
+          --icon "$appDir\lib\justeprix.png" `
+          --type msi `
+          --dest "build\compose\binaries\main\msi"
       shell: pwsh
     
     - name: Upload MSI
       uses: actions/upload-artifact@v4
       with:
         name: justeprix-windows
-        path: |
-          build/compose/binaries/main/*.msi
-          build/compose/binaries/main/msi/*.msi
+        path: build/compose/binaries/main/msi/*.msi
         retention-days: 7
 
   release:
