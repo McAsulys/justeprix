@@ -17,9 +17,14 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
     
+    - name: Install WiX Toolset
+      run: |
+        choco install wixtoolset --no-progress
+      shell: pwsh
+    
     - name: Build MSI
       run: |
-        gradle packageMsi --no-daemon
+        gradle packageDistributionForCurrentOS --no-daemon
       shell: pwsh
     
     - name: Upload MSI
