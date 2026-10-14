@@ -1,8 +1,6 @@
-name: Build Windows MSI
+name: Build Windows MSI (manual)
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -18,7 +16,7 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
     
-    - name: Build with Gradle
+    - name: Build MSI
       run: |
         gradle packageDistributionForCurrentOS --no-daemon
     
