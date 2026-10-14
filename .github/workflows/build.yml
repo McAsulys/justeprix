@@ -1,0 +1,30 @@
+name: Build Windows MSI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    
+    - name: Build with Gradle
+      run: |
+        gradle packageDistributionForCurrentOS --no-daemon
+    
+    - name: Upload MSI
+      uses: actions/upload-artifact@v4
+      with:
+        name: justeprix-windows
+        path: build/compose/binaries/main/*.msi
+        retention-days: 7
