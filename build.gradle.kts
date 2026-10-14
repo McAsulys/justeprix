@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose.multiplatform)
-    application
 }
 
 kotlin {
@@ -17,8 +16,10 @@ dependencies {
     testImplementation(libs.junit.jupiter)
 }
 
-application {
-    mainClass.set("MainKt")
+compose.desktop {
+    application {
+        mainClass = "MainKt"
+    }
 }
 
 tasks.test { useJUnitPlatform() }
