@@ -1,0 +1,48 @@
+name: Desktop Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    
+    - name: Build MSI
+      run: |
+        gradle packageDistributionForCurrentOS --no-daemon
+    
+    - name: Get version from tag
+      id: version
+      run: |
+        $tag = ${env:GITHUB_REF} -replace 'refs/tags/', ''
+        echo "version=$tag" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+    
+    - name: Upload MSI
+      uses: actions/upload-artifact@v4
+      with:
+        name: justeprix-windows
+        path: build/compose/binaries/main/*.msi
+        retention-days: 7
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: build/compose/binaries/main/*.msi
+        name: Release ${{ steps.version.outputs.version }}
+        body: "Automated release for version ${{ steps.version.outputs.version }}"
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
