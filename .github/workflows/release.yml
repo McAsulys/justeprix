@@ -31,15 +31,16 @@ jobs:
       run: |
         $appDir = "build\compose\binaries\main\app\justeprix"
         $jpackage = "$env:JAVA_HOME\bin\jpackage.exe"
+        $jarFile = Get-ChildItem -Path "$appDir\lib" -Filter "justeprix-*.jar" | Select-Object -First 1
+        Write-Host "Using JAR: $($jarFile.Name)"
         & $jpackage `
           --input "$appDir\lib" `
           --name justeprix `
           --app-version "1.0.0" `
           --main-class "MainKt" `
-          --main-jar "justeprix-*.jar" `
+          --main-jar $jarFile.Name `
           --win-shortcut `
           --win-menu `
-          --icon "$appDir\lib\justeprix.png" `
           --type msi `
           --dest "build\compose\binaries\main\msi"
       shell: pwsh
