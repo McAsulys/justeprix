@@ -5,11 +5,8 @@ on:
     tags: ['v*']
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [windows-latest]
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    runs-on: windows-latest
     
     steps:
     - uses: actions/checkout@v4
@@ -31,18 +28,19 @@ jobs:
         name: justeprix-windows
         path: build/compose/binaries/main/*.msi
         retention-days: 7
-  
+
   release:
-    needs: build
+    needs: build-windows
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
+        name: justeprix-windows
         path: artifacts
-        pattern: justeprix-*
-        merge-multiple: true
     
     - name: Get version from tag
       id: version
@@ -55,7 +53,7 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: artifacts/**/*.msi
+        files: artifacts/*.msi
         name: Release ${{ steps.version.outputs.version }}
         body: "Automated release for version ${{ steps.version.outputs.version }}"
         draft: false
