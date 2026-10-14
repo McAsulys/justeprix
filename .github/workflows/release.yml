@@ -19,14 +19,14 @@ jobs:
     
     - name: Build MSI
       run: |
-        gradle packageDistributionForCurrentOS --no-daemon
+        gradle packageMsi --no-daemon
       shell: pwsh
     
     - name: Upload MSI
       uses: actions/upload-artifact@v4
       with:
         name: justeprix-windows
-        path: build/compose/binaries/main/msi/
+        path: build/compose/binaries/main/*.msi
         retention-days: 7
 
   release:
