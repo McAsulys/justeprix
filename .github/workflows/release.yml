@@ -5,8 +5,11 @@ on:
     tags: ['v*']
 
 jobs:
-  release:
-    runs-on: windows-latest
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest]
+    runs-on: ${{ matrix.os }}
     
     steps:
     - uses: actions/checkout@v4
@@ -17,29 +20,44 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
     
-    - name: Build MSI
+    - name: Build package
       run: |
-        gradle packageDistributionForCurrentOS --no-daemon
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          ./gradlew.bat packageDistributionForCurrentOS --no-daemon
+        fi
+      shell: bash
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: justeprix-${{ runner.os }}
+        path: build/compose/binaries/main/*.msi
+        retention-days: 7
+  
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        pattern: justeprix-*
+        merge-multiple: true
     
     - name: Get version from tag
       id: version
       run: |
-        $tag = ${env:GITHUB_REF} -replace 'refs/tags/', ''
-        echo "version=$tag" >> $env:GITHUB_OUTPUT
-      shell: pwsh
-    
-    - name: Upload MSI
-      uses: actions/upload-artifact@v4
-      with:
-        name: justeprix-windows
-        path: build/compose/binaries/main/*.msi
-        retention-days: 7
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+      env:
+        GITHUB_REF: ${{ github.ref }}
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: build/compose/binaries/main/*.msi
+        files: artifacts/**/*.msi
         name: Release ${{ steps.version.outputs.version }}
         body: "Automated release for version ${{ steps.version.outputs.version }}"
         draft: false
