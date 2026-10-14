@@ -17,32 +17,9 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
     
-    - name: Install WiX Toolset
+    - name: Build MSI
       run: |
-        choco install wixtoolset --no-progress -y
-      shell: pwsh
-    
-    - name: Build app image
-      run: |
-        gradle clean createDistributable --no-daemon
-      shell: pwsh
-    
-    - name: Create MSI with jpackage
-      run: |
-        $appDir = "build\compose\binaries\main\app\justeprix"
-        $jpackage = "$env:JAVA_HOME\bin\jpackage.exe"
-        $jarFile = Get-ChildItem -Path "$appDir\lib" -Filter "justeprix-*.jar" | Select-Object -First 1
-        Write-Host "Using JAR: $($jarFile.Name)"
-        & $jpackage `
-          --input "$appDir\lib" `
-          --name justeprix `
-          --app-version "1.0.0" `
-          --main-class "MainKt" `
-          --main-jar $jarFile.Name `
-          --win-shortcut `
-          --win-menu `
-          --type msi `
-          --dest "build\compose\binaries\main\msi"
+        gradle packageMsi --no-daemon
       shell: pwsh
     
     - name: Upload MSI
