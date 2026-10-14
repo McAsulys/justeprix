@@ -19,19 +19,28 @@ jobs:
     
     - name: Install WiX Toolset
       run: |
-        choco install wixtoolset --no-progress
+        choco install wixtoolset --no-progress -y
       shell: pwsh
     
     - name: Build MSI
       run: |
-        gradle packageDistributionForCurrentOS --no-daemon
+        gradle clean packageDistributionForCurrentOS --no-daemon -v
+      shell: pwsh
+      env:
+        GRADLE_OPTS: "-Dorg.gradle.logging.level=info"
+    
+    - name: List build outputs
+      run: |
+        Get-ChildItem -Path build\compose\binaries\main -Recurse -File | Select-Object FullName
       shell: pwsh
     
     - name: Upload MSI
       uses: actions/upload-artifact@v4
       with:
         name: justeprix-windows
-        path: build/compose/binaries/main/*.msi
+        path: |
+          build/compose/binaries/main/*.msi
+          build/compose/binaries/main/msi/*.msi
         retention-days: 7
 
   release:
